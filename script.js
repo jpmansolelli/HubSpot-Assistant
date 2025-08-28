@@ -34,6 +34,7 @@ async function sendQuestion() {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
+                'ngrok-skip-browser-warning': 'any'
             },
             body: JSON.stringify({
                 question: question,
