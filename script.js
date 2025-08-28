@@ -1,5 +1,5 @@
 // Configuração
-const N8N_WEBHOOK_URL = 'https://settled-saving-dog.ngrok-free.app/webhook/hubspot-assistant';
+const N8N_WEBHOOK_URL = 'https://settled-saving-dog.ngrok-free.app/webhook/hubspot-assistant?ngrok-skip-browser-warning=true';
 
 // Função principal para enviar pergunta
 async function sendQuestion() {
