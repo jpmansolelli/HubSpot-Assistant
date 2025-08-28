@@ -33,6 +33,7 @@ async function sendQuestion() {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify({
                 question: question,
