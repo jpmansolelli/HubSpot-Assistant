@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Assistente inteligente para integrações com HubSpot API">
+    <meta name="author" content="Nexforce">
+    <title>HubSpot API Assistant - João Pedro Mansolelli</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+
+        .title {
+            font-size: 1.8rem;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .chat-container {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.bot .message-content {
+            background: #e2e8f0;
+            color: #2d3748;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .message.bot .message-avatar {
+            background: #4299e1;
+            color: white;
+        }
+
+        .message.user .message-avatar {
+            background: #9f7aea;
+            color: white;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .query-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .query-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .query-input:disabled {
+            background: #f7fafc;
+            color: #a0aec0;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .examples {
+            margin-top: 20px;
+        }
+
+        .examples-title {
+            font-size: 0.9rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example-button {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-button:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+            transform: translateY(-1px);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .typing-indicator.show {
+            display: flex;
+        }
+
+        .typing-dots {
+            display: flex;
+            align-items: center;
+            margin-left: 42px;
+        }
+
+        .typing-dots span {
+            height: 8px;
+            width: 8px;
+            background: #cbd5e0;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        .error-message {
+            background: #fed7e2;
+            color: #9b2c2c;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            border-left: 4px solid #f56565;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #48bb78;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .metadata {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .clear-button {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            color: #4a5568;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-button:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+            }
+            
+            .example-buttons {
+                flex-direction: column;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+
+            .input-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .send-button {
+                align-self: flex-end;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar customizada */
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Animações de entrada */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🤖</div>
+            <h1 class="title">HubSpot API Assistant</h1>
+            <p class="subtitle">Assistente inteligente para integrações com HubSpot API</p>
+            <span class="badge">Powered by AI RAG + N8N</span>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="message bot">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    Olá! Sou seu assistente especializado em HubSpot API. Posso ajudar com dúvidas sobre integrações, endpoints, autenticação, webhooks e muito mais. Como posso ajudá-lo hoje?
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="message-avatar" style="background: #4299e1; color: white;">🤖</div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input 
+                type="text" 
+                class="query-input" 
+                id="queryInput" 
+                placeholder="Digite sua pergunta sobre HubSpot API..."
+                maxlength="500"
+                autocomplete="off"
+            >
+            <button class="send-button" id="sendButton" onclick="sendQuestion()" disabled>
+                ➤
+            </button>
+        </div>
+
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>Sistema ativo</span>
+        </div>
+    </div>
+
+    <script>
+        // Configuração
+        const N8N_WEBHOOK_URL = 'https://settled-saving-dog.ngrok-free.app/webhook/hubspot-assistant';
+
+        // Função principal para enviar pergunta
+        async function sendQuestion() {
+            const input = document.getElementById('queryInput');
+            const chatContainer = document.getElementById('chatContainer');
+            const sendButton = document.getElementById('sendButton');
+            const typingIndicator = document.getElementById('typingIndicator');
+            
+            const question = input.value.trim();
+            
+            if (!question) {
+                input.focus();
+                return;
+            }
+            
+            // Adicionar mensagem do usuário ao chat
+            addMessage(question, 'user');
+            
+            // Limpar input e desabilitar controles
+            input.value = '';
+            sendButton.disabled = true;
+            input.disabled = true;
+            
+            // Mostrar indicador de digitação
+            typingIndicator.classList.add('show');
+            
+            try {
+                // Fazer requisição para o webhook N8N
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        timestamp: new Date().toISOString(),
+                        source: 'hubspot-assistant-web'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Esconder indicador de digitação
+                typingIndicator.classList.remove('show');
+                
+                // Adicionar resposta do assistente
+                const botResponse = data.response || data.message || data.answer || 'Desculpe, não consegui processar sua pergunta.';
+                addMessage(botResponse, 'bot');
+                
+                // Se houver metadados, adicionar
+                if (data.metadata) {
+                    addMetadata(data.metadata);
+                }
+                
+            } catch (error) {
+                console.error('Erro ao comunicar com N8N:', error);
+                
+                // Esconder indicador de digitação
+                typingIndicator.classList.remove('show');
+                
+                // Mostrar mensagem de erro amigável
+                let errorMessage = 'Desculpe, ocorreu um erro ao processar sua pergunta.';
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+                } else if (error.message.includes('CORS')) {
+                    errorMessage = 'Erro de configuração. Por favor, contate o administrador.';
+                }
+                
+                addMessage(errorMessage, 'bot', 'error');
+                
+            } finally {
+                // Reabilitar controles
+                sendButton.disabled = false;
+                input.disabled = false;
+                input.focus();
+            }
+        }
+
+        // Função para adicionar mensagem ao chat
+        function addMessage(text, sender, type = 'normal') {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            // Avatar
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            
+            if (sender === 'bot') {
+                avatar.style.background = type === 'error' ? '#f56565' : '#4299e1';
+                avatar.textContent = '🤖';
+            } else {
+                avatar.style.background = '#9f7aea';
+                avatar.textContent = '👤';
+            }
+            
+            // Conteúdo da mensagem
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            if (type === 'error') {
+                content.style.background = '#fed7e2';
+                content.style.color = '#9b2c2c';
+                content.style.borderLeft = '4px solid #f56565';
+            }
+            
+            // Suporte básico a markdown/formatação
+            const formattedText = formatMessage(text);
+            content.innerHTML = formattedText;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            
+            chatContainer.appendChild(messageDiv);
+            
+            // Auto-scroll para a última mensagem
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Animação suave
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                messageDiv.style.opacity = '1';
+                messageDiv.style.transform = 'translateY(0)';
+                messageDiv.style.transition = 'all 0.3s ease';
+            }, 10);
+        }
+
+        // Função para formatar mensagens básicas
+        function formatMessage(text) {
+            return text
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code style="background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-family: monospace;">$1</code>');
+        }
+
+        // Função para adicionar metadados
+        function addMetadata(metadata) {
+            const chatContainer = document.getElementById('chatContainer');
+            const lastMessage = chatContainer.lastElementChild;
+            
+            if (lastMessage && lastMessage.classList.contains('bot')) {
+                const metadataDiv = document.createElement('div');
+                metadataDiv.className = 'metadata';
+                metadataDiv.innerHTML = `
+                    <small>
+                        ${metadata.source ? `Fonte: ${metadata.source}` : ''}
+                        ${metadata.timestamp ? ` • ${new Date(metadata.timestamp).toLocaleTimeString('pt-BR')}` : ''}
+                        ${metadata.confidence ? ` • Confiança: ${Math.round(metadata.confidence * 100)}%` : ''}
+                    </small>
+                `;
+                
+                lastMessage.querySelector('.message-content').appendChild(metadataDiv);
+            }
+        }
+
+        // Função para adicionar exemplos de perguntas
+        function addExampleButtons() {
+            const examples = [
+                "Como autenticar na API do HubSpot?",
+                "Quais são os endpoints principais?",
+                "Como criar um webhook no HubSpot?",
+                "Como buscar contatos via API?",
+                "Rate limits da API do HubSpot",
+                "Como atualizar propriedades de contato?"
+            ];
+            
+            const examplesContainer = document.createElement('div');
+            examplesContainer.className = 'examples';
+            examplesContainer.innerHTML = `
+                <div class="examples-title">💡 Perguntas frequentes:</div>
+                <div class="example-buttons">
+                    ${examples.map(example => 
+                        `<button class="example-button" onclick="fillInput('${example}')">${example}</button>`
+                    ).join('')}
+                </div>
+            `;
+            
+            const container = document.querySelector('.container');
+            container.appendChild(examplesContainer);
+        }
+
+        // Função para preencher input com exemplo
+        function fillInput(text) {
+            const input = document.getElementById('queryInput');
+            input.value = text;
+            sendButton.disabled = false;
+            input.focus();
+        }
+
+        // Função para limpar chat
+        function clearChat() {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = `
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        Olá! Sou seu assistente especializado em HubSpot API. Posso ajudar com dúvidas sobre integrações, endpoints, autenticação, webhooks e muito mais. Como posso ajudá-lo hoje?
+                    </div>
+                </div>
+            `;
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('queryInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            // Enviar com Enter
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !sendButton.disabled && !input.disabled) {
+                    e.preventDefault();
+                    sendQuestion();
+                }
+            });
+            
+            // Controle do botão enviar baseado no input
+            input.addEventListener('input', function() {
+                sendButton.disabled = this.value.trim() === '';
+            });
+            
+            // Adicionar botões de exemplo
+            addExampleButtons();
+            
+            // Focus inicial no input
+            input.focus();
+            
+            // Adicionar botão de limpar chat
+            const header = document.querySelector('.header');
+            const clearButton = document.createElement('button');
+            clearButton.innerHTML = '🗑️ Limpar Chat';
+            clearButton.className = 'clear-button';
+            clearButton.addEventListener('click', clearChat);
+            header.appendChild(clearButton);
+        });
+
+        // Exportar funções para uso global
+        window.sendQuestion = sendQuestion;
+        window.fillInput = fillInput;
+        window.clearChat = clearChat;
+    </script>
+</body>
+</html>
