@@ -46,7 +46,19 @@ async function sendQuestion() {
             throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
         }
         
-        const data = await response.json();
+        const text = await response.text();
+        console.log('Resposta do n8n:', text);
+
+        let data;
+        if (!text || text.trim() === '') {
+            data = { response: 'O workflow está processando sua pergunta, mas ainda não está configurado para retornar respostas. Verifique o nó "Respond to Webhook" no n8n.' };
+        } else {
+        try {
+            data = JSON.parse(text);
+        } catch (jsonError) {
+        data = { response: text };
+        }
+        }
         
         // Esconder indicador de digitação
         typingIndicator.classList.remove('show');
